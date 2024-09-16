@@ -31,6 +31,7 @@ class TeleopNode(Node):
         tells the robot to move when a certain key is pressed
         """
         # series of if statements telling the robot what to do for each key
+
         vel = Twist()
         if self.getKey() == "w":
             vel.linear.x = 0.1
