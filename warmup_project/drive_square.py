@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from time import time
+from math import pi
 
 
 class DriveSquareNode(Node):
@@ -30,26 +31,37 @@ class DriveSquareNode(Node):
         # publish the move forward command for a set amount of time, then a turn command and repeat till theres a square
         current_time = time()
         delta_time = current_time - self.start_time
-        while delta_time < 10:
+        if delta_time < 10:
             vel.linear.x = 0.1
-        while delta_time > 10 and delta_time < 20:
-            vel.linear.x = 0
-            vel.angular.z = 0.1
-        while delta_time > 20 and delta_time < 30:
-            vel.angular.z = 0
+            self.vel_publisher.publish(vel)
+        elif delta_time > 10 and delta_time < 20:
+            vel.linear.x = 0.0
+            vel.angular.z = pi / 19
+            self.vel_publisher.publish(vel)
+        elif delta_time > 20 and delta_time < 30:
+            vel.angular.z = 0.0
             vel.linear.x = 0.1
-        while delta_time > 30 and delta_time < 40:
-            vel.linear.x = 0
-            vel.angular.z = 0.1
-        while delta_time > 40 and delta_time < 50:
-            vel.angular.z = 0
+            self.vel_publisher.publish(vel)
+        elif delta_time > 30 and delta_time < 40:
+            vel.linear.x = 0.0
+            vel.angular.z = pi / 19
+            self.vel_publisher.publish(vel)
+        elif delta_time > 40 and delta_time < 50:
+            vel.angular.z = 0.0
             vel.linear.x = 0.1
-        while delta_time > 50 and delta_time < 60:
-            vel.linear.x = 0
-            vel.angular.z = 0.1
-        while delta_time > 60 and delta_time < 70:
-            vel.angular.z = 0
+            self.vel_publisher.publish(vel)
+        elif delta_time > 50 and delta_time < 60:
+            vel.linear.x = 0.0
+            vel.angular.z = pi / 19
+            self.vel_publisher.publish(vel)
+        elif delta_time > 60 and delta_time < 70:
+            vel.angular.z = 0.0
             vel.linear.x = 0.1
+            self.vel_publisher.publish(vel)
+        else:
+            vel.angular.z = 0.0
+            vel.linear.x = 0.0
+            self.vel_publisher.publish(vel)
 
 
 def main(args=None):
