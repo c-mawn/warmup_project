@@ -42,23 +42,20 @@ class WallFollowerNode(Node):
             # angular velocity = 0.1 * bigger/smaller
             # this means that the greater the ratio, the faster the turn
             #
-            if sum(scan.ranges[60:90]) > sum(scan.ranges[90:120]):
-                vel.angular.z = (
-                    0.1 * sum(scan.ranges[60:90]) // sum(scan.ranges[90:120])
-                )
+            front = sum(scan.ranges[60:90])
+            back = sum(scan.ranges[90:120])
+            if front > back:
+                vel.angular.z = 0.1 * front // back
             else:
-                vel.angular.z = (
-                    -0.1 * sum(scan.ranges[90:120]) // sum(scan.ranges[60:90])
-                )
+                vel.angular.z = -0.1 * back // front
         else:
-            if sum(scan.ranges[270:300]) > sum(scan.ranges[240:270]):
-                vel.angular.z = (
-                    -0.1 * sum(scan.ranges[270:300]) // sum(scan.ranges[240:270])
-                )
+            # right wall is closer
+            front = sum(scan.ranges[270:300])
+            back = sum(scan.ranges[240:270])
+            if front > back:
+                vel.angular.z = -0.1 * front // back
             else:
-                vel.angular.z = (
-                    0.1 * sum(scan.ranges[240:270]) // sum(scan.ranges[270:300])
-                )
+                vel.angular.z = 0.1 * back // front
 
         if self.getKey() == "w":
             vel.linear.x = 0.1
@@ -68,7 +65,7 @@ class WallFollowerNode(Node):
             self.publisher.publish(vel)
             rclpy.shutdown()
         else:
-            # alternatively, we can update the position here
+            # ALTERNATIVE METHOD we can update the position here
             vel.linear.x = 0.0
             vel.angular.z = 0.0
 
