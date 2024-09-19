@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-warmup_project/__pycache__/*.pyc
+*.pyc
 
 # C extensions
 *.so
