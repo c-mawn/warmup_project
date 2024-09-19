@@ -1,9 +1,10 @@
-import rclpy
 import math
+import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
+from time import time
 
 
 class PersonFollowerNode(Node):
@@ -36,6 +37,10 @@ class PersonFollowerNode(Node):
         self.scan = LaserScan()
         self.odom = Odometry()
 
+        # creates a world time from the start of the turn
+        self.start_turn_time = time()
+        self.start_straight_time = time()
+
     def handle_scan(self, msg: LaserScan):
         """
         handles every laser scan from the subscriber
@@ -67,14 +72,27 @@ class PersonFollowerNode(Node):
         # ignore things that are straight lines, but id like ot enjoy my life instead
         # tldr: dont run this with other items around... only human
 
+        # current time
+        current_time = time()
+
+        # sets scan_ranges to be the list of scans from the neato
         scan_ranges = self.scan.ranges
+
+        # sets theta_step to be the single float reprisenting the sngle incriment from the scan
+        theta_step = self.scan.angle_increment
+
+        # initializes the start and stop index of the "item" that the lidar sees
         item_start_index = 0
         item_stop_index = 0
+
         for scan_range in scan_ranges:
+            # checks to see if the lidar sees an item
             if scan_range != 0:
+                # if the lidar sees something, it sets the current index to the item start, then breaks
                 item_start_index = scan_ranges.index(scan_range)
                 break
         for scan_range in reversed(scan_ranges):
+            # does the same thing in reverse to find the item stop index
             if scan_range != 0:
                 item_stop_index = scan_ranges.index(scan_range)
                 break
@@ -88,11 +106,49 @@ class PersonFollowerNode(Node):
         [_, _, neato_theta] = euler_from_quaternion(
             orientation.x, orientation.y, orientation.z, orientation.w
         )
-        item_theta = None
-        delta_theta = None  # theta of the neato - theta of center of object
+
+        # finds the angle of the center of the item
+        item_theta = theta_step * (item_start_index + item_center)
+        # finds the difference between the neato angle and the item angle
+        delta_theta = neato_theta - item_theta
+
+        vel = Twist()
+
+        turn_speed = 0.2  # rad/sec
+        turn_time = delta_theta / turn_speed
+
+        self.start_turn_time = current_time
+
+        if current_time - self.start_turn_time < turn_time:
+            vel.angular.z = turn_speed
+            self.vel_publisher.publish(vel)
+        else:
+            vel.angular.z = 0.0
+            done_turn = True
+            self.start_straight_time = current_time
+            self.vel_publisher.publish(vel)
+
+        if done_turn:
+            if current_time - self.start_straight_time < 4.0:
+                vel.linear.x = 0.2
+                self.vel_publisher.publish(vel)
 
 
-# some fucntions for quaternion to euler stuff
+def main(args=None):
+    """
+    main function
+    """
+    rclpy.init(args=args)
+    node = PersonFollowerNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+
+
+# fucntions for quaternion to euler stuff
 def euler_from_quaternion(x, y, z, w):
     """
     Convert a quaternion into euler angles (roll, pitch, yaw)
