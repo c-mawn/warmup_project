@@ -1,9 +1,23 @@
+"""
+Wall follower module. 
+
+Uses keyboard input (must press enter)
+
+w - forward (and wall follow)
+a - left and forward
+d - right and forward
+s - backward
+
+any other key - stop
+
+"""
+
+import threading
 import numpy as np
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
-import threading
 
 
 class WallFollowerNode(Node):
@@ -54,9 +68,16 @@ class WallFollowerNode(Node):
         self.publisher.publish(vel)
 
     def keyboard_input(self, inp):
+        """
+        Callback for Keyboard Input
+        """
         self.key_input = inp
 
     def process_scan(self, msg: LaserScan):
+        """
+        Callback for LaserScan
+        Changes the value of self.angular_vel according to the detected wall
+        """
         scans = np.array(msg.ranges)
         ranges = np.array(range(361))
 
@@ -120,6 +141,9 @@ class WallFollowerNode(Node):
 
 
 class KeyboardThread(threading.Thread):
+    """
+    Keybaord input as a thread (uses python input())
+    """
 
     def __init__(self, input_cbk=None, name="keyboard-input-thread"):
         self.input_cbk = input_cbk
