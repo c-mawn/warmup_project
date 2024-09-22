@@ -12,6 +12,7 @@ any other key - stop
 
 """
 
+import math
 import threading
 import numpy as np
 import rclpy
@@ -50,15 +51,15 @@ class WallFollowerNode(Node):
         # series of if statements telling the robot what to do for each key
         vel = Twist()
 
-        if self.key_input == "w":
+        if "w" in self.key_input:
             vel.linear.x = 0.1
             vel.angular.z = self.angular_vel * 3.0
-        elif self.key_input == "s":
+        elif "s" in self.key_input:
             vel.linear.x = -0.2
-        elif self.key_input == "a":
+        elif "a" in self.key_input:
             vel.linear.x = 0.1
             vel.angular.z = 0.3
-        elif self.key_input == "d":
+        elif "d" in self.key_input:
             vel.linear.x = 0.1
             vel.angular.z = -0.3
         else:
@@ -111,6 +112,11 @@ class WallFollowerNode(Node):
             front = np.mean(scans[np.where((ranges > 60) & (ranges < 90))])
             back = np.mean(scans[np.where((ranges > 90) & (ranges < 120))])
 
+            if math.isnan(front):
+                front = 100
+            if math.isnan(back):
+                back = 100
+
             if abs(front - back) > 0.01:
                 # front is further
                 print("left wall, turn counter-clockwise")
@@ -123,6 +129,11 @@ class WallFollowerNode(Node):
             # use right wall
             front = np.mean(scans[np.where((ranges > 240) & (ranges < 270))])
             back = np.mean(scans[np.where((ranges > 270) & (ranges < 300))])
+
+            if math.isnan(front):
+                front = 100
+            if math.isnan(back):
+                back = 100
 
             if abs(front - back) > 0.01:
                 # front is further
