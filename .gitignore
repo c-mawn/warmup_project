@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+install/
+log/
+warmup_project/install/
+warmup_project/log
 
 # C extensions
 *.so
