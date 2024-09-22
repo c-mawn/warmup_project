@@ -38,7 +38,7 @@ class WallFollowerNode(Node):
         self.subscription_lidar = self.create_subscription(
             LaserScan, "scan", self.process_scan, 10
         )
-        kthread = KeyboardThread(self.keyboard_input)
+        self.kthread = KeyboardThread(self.keyboard_input)
 
         self.angular_vel = 0.0
         self.key_input = ""
