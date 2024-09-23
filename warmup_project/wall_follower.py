@@ -118,7 +118,7 @@ class WallFollowerNode(Node):
                 back = 100
 
             if abs(front - back) > 0.01:
-                # front is further
+                # sets the angular velocity to the difference between the front and back average distance
                 print("left wall, turn counter-clockwise")
                 self.angular_vel = front - back
 
@@ -136,7 +136,7 @@ class WallFollowerNode(Node):
                 back = 100
 
             if abs(front - back) > 0.01:
-                # front is further
+                # sets the angular velocity to the difference between the front and back average distance
                 print("right wall, turn counter-clockwise")
                 self.angular_vel = front - back
 
