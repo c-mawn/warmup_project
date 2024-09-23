@@ -33,11 +33,6 @@ class ObstacleAvoiderNode(Node):
         super().__init__("ObstacleAvoiderNode")
 
         # initializing the values used through the whole node
-        self.goal_delta_x = 1.0
-        self.goal_delta_y = 0.0
-
-        self.obstacle_delta_x = 0.0
-        self.obstacle_delta_y = 0.0
 
         self.angular_velocity = 0.0
         self.linear_velocity_scale = 1.0
@@ -98,9 +93,9 @@ class ObstacleAvoiderNode(Node):
         self.linear_velocity_scale = 0.001 / abs(self.angular_velocity + 0.001)
 
         if np.mean(distances[left_bounds]) - np.mean(distances[right_bounds]) < 0.1:
-            # left side is further, or has more points, turn clockwise
+            # front is taken
             self.angular_velocity = 2.0
-            self.linear_velocity_scale = 0.5
+            self.linear_velocity_scale = 0.4
 
         print(self.angular_velocity, self.linear_velocity_scale)
 
