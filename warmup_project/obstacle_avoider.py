@@ -10,9 +10,11 @@ s - backward
 
 any other key - stop
 
+
+* Non-blocking keyboard input from https://stackoverflow.com/questions/2408560/non-blocking-console-input
+
 """
 
-import math
 import threading
 import numpy as np
 import rclpy
@@ -39,7 +41,6 @@ class ObstacleAvoiderNode(Node):
         self.angular_velocity = 0.0
         self.linear_velocity_scale = 1.0
 
-        self.beta = 0.5
         self.detection_field = 0.8  # when you enter the field
 
         self.key_input = ""
@@ -61,9 +62,31 @@ class ObstacleAvoiderNode(Node):
         # series of if statements telling the robot what to do for each key
         vel = Twist()
 
-        vel.angular.z = self.angular_velocity * 0.5
-        vel.linear.x = 0.4 * self.linear_velocity_scale
+        if "w" in self.key_input:
+            vel.angular.z = self.angular_velocity * 0.5
+            vel.linear.x = 0.4 * self.linear_velocity_scale
+        elif "s" in self.key_input:
+            vel.linear.x = -0.2
+            self.reset_history()
+        elif "a" in self.key_input:
+            vel.angular.z = 0.8
+            self.reset_history()
+        elif "d" in self.key_input:
+            vel.angular.z = -0.8
+            self.reset_history()
+        else:
+            vel.linear.x = 0.0
+            vel.angular.z = 0.0
+            self.reset_history()
+
         self.publisher.publish(vel)
+
+    def reset_history(self):
+        """
+        Reset the angular and linear velocity history
+        """
+        self.angular_velocity_history = []
+        self.linear_velocity_history = []
 
     def keyboard_input(self, inp):
         """
@@ -89,16 +112,18 @@ class ObstacleAvoiderNode(Node):
         left_bounds = np.where(angles < 30)
         right_bounds = np.where(angles > 330)
 
+        # angular velocity is the difference between the left side laser scans and the right side laser scans
         self.angular_velocity = -(np.sum(distances[left_bounds])) + (
             np.sum(distances[right_bounds])
         )
         self.linear_velocity_scale = 0.001 / abs(self.angular_velocity + 0.001)
 
+        # Normal to the obstacle
         if np.mean(distances[left_bounds]) - np.mean(distances[right_bounds]) < 0.1:
-            # front is taken
             self.angular_velocity = 2.0
             self.linear_velocity_scale = 0.4
 
+        # Record angular and linear velocity to history
         if self.angular_velocity != 0:
             self.angular_velocity_history = [
                 self.angular_velocity
@@ -107,25 +132,27 @@ class ObstacleAvoiderNode(Node):
                 self.linear_velocity_scale
             ] + self.linear_velocity_history
 
-        if all(
-            [
-                len(np.where((angles >= 60) & (angles <= 80))[0]) < 3,
-                len(np.where((angles >= 100) & (angles <= 300))[0]) < 3,
-            ]
-        ):
-            if (self.angular_velocity == 0) & (len(self.angular_velocity_history) > 0):
+        # Checks if the robot is going straight, and there is an angular velocity history
+        if (self.angular_velocity == 0) & (len(self.angular_velocity_history) > 0):
+            # checks if the robot has passed the obstacle
+            if all(
+                [
+                    len(np.where((angles >= 60) & (angles <= 80))[0]) < 3,
+                    len(np.where((angles >= 100) & (angles <= 300))[0]) < 3,
+                ]
+            ):
+                # sets the angular velocity to `the most recent velocity` * -1
                 self.angular_velocity = -self.angular_velocity_history[0]
                 self.linear_velocity_scale = self.linear_velocity_history[0]
 
                 self.angular_velocity_history = self.angular_velocity_history[1:]
                 self.linear_velocity_history = self.linear_velocity_history[1:]
 
-        # print(self.angular_velocity, self.linear_velocity_scale)
-
 
 class KeyboardThread(threading.Thread):
     """
-    Keybaord input as a thread (uses python input())
+    Keyboard input as a thread (uses python input())
+    Waits for (enter)
     """
 
     def __init__(self, input_cbk=None, name="keyboard-input-thread"):
