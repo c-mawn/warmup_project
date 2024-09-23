@@ -61,9 +61,28 @@ class ObstacleAvoiderNode(Node):
         # series of if statements telling the robot what to do for each key
         vel = Twist()
 
-        vel.angular.z = self.angular_velocity * 0.5
-        vel.linear.x = 0.4 * self.linear_velocity_scale
+        if "w" in self.key_input:
+            vel.angular.z = self.angular_velocity * 0.5
+            vel.linear.x = 0.4 * self.linear_velocity_scale
+        elif "s" in self.key_input:
+            vel.linear.x = -0.2
+            self.reset_history()
+        elif "a" in self.key_input:
+            vel.angular.z = 0.3
+            self.reset_history()
+        elif "d" in self.key_input:
+            vel.angular.z = -0.3
+            self.reset_history()
+        else:
+            vel.linear.x = 0.0
+            vel.angular.z = 0.0
+            self.reset_history()
+
         self.publisher.publish(vel)
+
+    def reset_history(self):
+        self.angular_velocity_history = []
+        self.linear_velocity_history = []
 
     def keyboard_input(self, inp):
         """
