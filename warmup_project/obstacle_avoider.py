@@ -33,16 +33,14 @@ class ObstacleAvoiderNode(Node):
         super().__init__("ObstacleAvoiderNode")
 
         # initializing the values used through the whole node
-        self.goal_delta_x = 1.0
-        self.goal_delta_y = 0.0
-
-        self.obstacle_delta_x = 0.0
-        self.obstacle_delta_y = 0.0
+        self.angular_velocity_history = []
+        self.linear_velocity_history = []
 
         self.angular_velocity = 0.0
+        self.linear_velocity_scale = 1.0
 
         self.beta = 0.5
-        self.field_effect = 0.3  # when you enter the field
+        self.detection_field = 0.8  # when you enter the field
 
         self.key_input = ""
 
@@ -63,8 +61,8 @@ class ObstacleAvoiderNode(Node):
         # series of if statements telling the robot what to do for each key
         vel = Twist()
 
-        vel.angular.z = self.angular_velocity
-        vel.linear.x = 0.4
+        vel.angular.z = self.angular_velocity * 0.5
+        vel.linear.x = 0.4 * self.linear_velocity_scale
         self.publisher.publish(vel)
 
     def keyboard_input(self, inp):
@@ -82,40 +80,47 @@ class ObstacleAvoiderNode(Node):
         angles = np.array(range(361))
 
         # removes scans that are too far away or returned a 0
-        outside_bounds = np.where((distances > 0) & (distances < self.field_effect))
+        outside_bounds = np.where((distances > 0) & (distances < self.detection_field))
         distances = distances[outside_bounds]
         angles = angles[outside_bounds]
 
         # reduce scans to a 60 degree sweep, spread over 15 points
         angles = angles[:-1:4]
-        inside_bounds = np.where((angles > 330) | (angles < 30))
-        distances = distances[inside_bounds]
-        angles = angles[inside_bounds]
+        left_bounds = np.where(angles < 30)
+        right_bounds = np.where(angles > 330)
 
-        self.obstacle_delta_x, self.obstacle_delta_y = 0, 0
-
-        for d, theta in zip(distances, angles):
-            self.obstacle_delta_x += (
-                -self.beta * (self.field_effect - d) * math.cos(math.radians(theta))
-            )
-            self.obstacle_delta_y += (
-                -self.beta * (self.field_effect - d) * math.sin(math.radians(theta))
-            )
-
-        if not self.obstacle_delta_x:
-            self.obstacle_delta_x = 1e6
-        if not self.obstacle_delta_y:
-            self.obstacle_delta_y = 1e6
-        self.obstacle_delta_x = self.obstacle_delta_x / (
-            self.obstacle_delta_x + self.obstacle_delta_y
+        self.angular_velocity = -(np.sum(distances[left_bounds])) + (
+            np.sum(distances[right_bounds])
         )
-        self.obstacle_delta_y = self.obstacle_delta_y / (
-            self.obstacle_delta_x + self.obstacle_delta_y
-        )
+        self.linear_velocity_scale = 0.001 / abs(self.angular_velocity + 0.001)
 
-        self.angular_velocity = (
-            math.atan2(self.obstacle_delta_y, self.obstacle_delta_x) * 0.4
-        )
+        if np.mean(distances[left_bounds]) - np.mean(distances[right_bounds]) < 0.1:
+            # front is taken
+            self.angular_velocity = 2.0
+            self.linear_velocity_scale = 0.4
+
+        if self.angular_velocity != 0:
+            self.angular_velocity_history = [
+                self.angular_velocity
+            ] + self.angular_velocity_history
+            self.linear_velocity_history = [
+                self.linear_velocity_scale
+            ] + self.linear_velocity_history
+
+        if all(
+            [
+                len(np.where((angles >= 60) & (angles <= 80))[0]) < 3,
+                len(np.where((angles >= 100) & (angles <= 300))[0]) < 3,
+            ]
+        ):
+            if (self.angular_velocity == 0) & (len(self.angular_velocity_history) > 0):
+                self.angular_velocity = -self.angular_velocity_history[0]
+                self.linear_velocity_scale = self.linear_velocity_history[0]
+
+                self.angular_velocity_history = self.angular_velocity_history[1:]
+                self.linear_velocity_history = self.linear_velocity_history[1:]
+
+        # print(self.angular_velocity, self.linear_velocity_scale)
 
 
 class KeyboardThread(threading.Thread):
