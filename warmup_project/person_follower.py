@@ -28,7 +28,10 @@ class PersonFollowerNode(Node):
 
         # creating the timer
         timer_period = 0.1
-        self.timer = self.create_timer(timer_period, self.run_loop())
+        self.timer = self.create_timer(timer_period, self.run_loop)
+
+        # creates publisher for the velocity to wheels
+        self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
 
         # creates subscribers for lidar and bump
         self.scan_subscriber = self.create_subscription(
@@ -37,9 +40,6 @@ class PersonFollowerNode(Node):
         self.bump_subscriber = self.create_subscription(
             Bump, "bump", self.handle_bump, 10
         )
-
-        # creates publisher for the velocity to wheels
-        self.vel_publisher = self.create_publisher(Twist, "cmd_vel", 10)
 
     def get_item_error(self, msg: LaserScan):
         """
@@ -103,8 +103,8 @@ class PersonFollowerNode(Node):
                 vel.linear.x = 0.0
             else:
                 vel.linear.x = 0.2
-            # sets the angular speed to be .2
-            vel.angular.z = 0.2
+            # sets the angular speed to be proportional to the distance it needs to move
+            vel.angular.z = 0.7 * self.item_error
         self.vel_publisher.publish(vel)
 
 
