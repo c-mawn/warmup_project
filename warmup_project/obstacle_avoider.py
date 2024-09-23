@@ -33,6 +33,8 @@ class ObstacleAvoiderNode(Node):
         super().__init__("ObstacleAvoiderNode")
 
         # initializing the values used through the whole node
+        self.angular_velocity_history = []
+        self.linear_velocity_history = []
 
         self.angular_velocity = 0.0
         self.linear_velocity_scale = 1.0
@@ -97,7 +99,28 @@ class ObstacleAvoiderNode(Node):
             self.angular_velocity = 2.0
             self.linear_velocity_scale = 0.4
 
-        print(self.angular_velocity, self.linear_velocity_scale)
+        if self.angular_velocity != 0:
+            self.angular_velocity_history = [
+                self.angular_velocity
+            ] + self.angular_velocity_history
+            self.linear_velocity_history = [
+                self.linear_velocity_scale
+            ] + self.linear_velocity_history
+
+        if all(
+            [
+                len(np.where((angles >= 60) & (angles <= 80))[0]) < 3,
+                len(np.where((angles >= 100) & (angles <= 300))[0]) < 3,
+            ]
+        ):
+            if (self.angular_velocity == 0) & (len(self.angular_velocity_history) > 0):
+                self.angular_velocity = -self.angular_velocity_history[0]
+                self.linear_velocity_scale = self.linear_velocity_history[0]
+
+                self.angular_velocity_history = self.angular_velocity_history[1:]
+                self.linear_velocity_history = self.linear_velocity_history[1:]
+
+        # print(self.angular_velocity, self.linear_velocity_scale)
 
 
 class KeyboardThread(threading.Thread):
