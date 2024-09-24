@@ -19,6 +19,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+from visualization_msgs.msg import Marker
 
 
 class WallFollowerNode(Node):
@@ -31,11 +32,13 @@ class WallFollowerNode(Node):
         initializes the class
         """
         super().__init__("WallFollowerNode")
+        self.wall_point = [0, 0]
         # creates the timer
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.run_loop)
         # create publisher to tell the motors to move
         self.publisher = self.create_publisher(Twist, "cmd_vel", 10)
+        self.viz_pub = self.create_publisher(Marker, "marker", 10)
         self.subscription_lidar = self.create_subscription(
             LaserScan, "scan", self.process_scan, 10
         )
