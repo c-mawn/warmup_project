@@ -14,14 +14,14 @@ the publisher `cmd_vel`, and eventually introduced perception and proportional c
 used in this project are the built-in lidar and bump sensor. These are the final behaviors programmed into
 our Neato. 
 
-- Teleoperation
-- Driving a Square
-- Wall Follower
-- People Follower 
-- Obstacle Avoider
-- Finite-State Controller
+- [Teleoperation](#teleoperation)
+- [Driving a Square](#driving-a-square)
+- [Wall Follower](#wall-follower)
+- [Person Follower](#person-follower)
+- [Obstacle Avoider](#obstacle-avoider)
+- [Finite-State Controller](#finite-state-controller)
 
-## Teleoperation
+## Teleoperation  <a name="teleop"></a>
 
 ### Methods
 This module allows a person to manually remote control a robot through a wireless connection. Our teleoperation
@@ -39,7 +39,7 @@ In order to implement this behavior, we used a package that tells python what ke
 
 
 
-## Driving a Square
+## Driving a Square <a name="square"></a>
 
 ### Methods
 
@@ -55,7 +55,7 @@ the Neato would draw.
 ### Code Structure
 In order to implement the drive square behavior, we used the time package, which tells us the current time as well as the time since we started the program. This means that we are able to tell the robot (via the `cmd_vel` topic) the amount of time to move for. We set the wheels to move forward for a set amount of time, then turn for the set amount of time repeatedly. 
 
-## Wall Follower
+## Wall Follower  <a name="wall-follow"></a>
 ### Description
 Looks for the nearest wall and drives parallel to it. \
 [Wall Follower Demo Video](https://youtube.com/shorts/JPt8uSnMzNA?feature=share) \
@@ -96,7 +96,7 @@ However, the user needs to confirm the input with an `enter`. The algorithm that
 non-blocking user input. Unfortunately, we were unable to provide that with our intial `teleop` module. Thus, we used 
 multi-threading with the default Python `input()` to achieve a non-blocking variation of `teleop`. 
 
-## Person Follower
+## Person Follower  <a name="person-follow"></a>
 ### Description
 For person following, the robot scans the area, and navigates towards the nearest object "person"
 
@@ -115,7 +115,7 @@ We then use this 'item error' to proportionally control the robot's speed when f
 ### Code Structure
 The `person_follower.py` file contains a `PersonFollowerNode` which controls the person following behavior of this robot. Within the `PersonFollowerNode` there is a publisher, sending messages on the `cmd_vel` topic to the robot, telling it what velocities to set the wheels at. This class also contains a subscriber, listing to the `scan` topic, and recieving LIDAR scan information from the robot. There is also a publisher used in publishing to the `marker` topic, which was useful in visualizing and debugging the node. 
 
-## Obstacle Avoider
+## Obstacle Avoider  <a name="obstacle-avoider"></a>
 ### Description
 Move in a preferred direction of motion, while avoiding obstacles using the lidar scanner. 
 
@@ -171,7 +171,7 @@ This allows the user to change the preferred direction of motion by resetting th
 the obstacle avoider is by including the encoder to help store history. This increase both accuracy and robustness of the algorithm's ability
 to return back to a preferred direction of motion. 
 
-## Finite State Controller
+## Finite State Controller  <a name="fsc"></a>
 
 [Finite State Controller Demo Video](https://youtube.com/shorts/Fp6Xx75TFZ0?feature=share)
 
