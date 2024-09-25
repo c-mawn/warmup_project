@@ -171,7 +171,7 @@ This allows the user to change the preferred direction of motion by resetting th
 the obstacle avoider is by including the encoder to help store history. This increase both accuracy and robustness of the algorithm's ability
 to return back to a preferred direction of motion. 
 
-## Finite State Controller  <a name="fsc"></a>
+## Finite State Controller  <a name="finite-state-controller"></a>
 
 [Finite State Controller Demo Video](https://youtube.com/shorts/Fp6Xx75TFZ0?feature=share)
 
