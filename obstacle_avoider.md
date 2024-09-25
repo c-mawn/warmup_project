@@ -58,14 +58,29 @@ if mean(left_bounds) - mean(right_bounds) < 0.1:
     self.angular_velocity = 2.0
     self.linear_velocity_scale = 0.4
 ```
-This statement changes the angle such that we can continue to use the first statement. We use `foo2 - foo1 < 0.1` instead of `==` \
+This statement changes the angle such that we can continue to use the first statement. Additionally, we decided to slow down\
+the linear velocity when the Neato is in such a position. For the conditional itself, we use `foo2 - foo1 < 0.1` instead of `==` \
 to prevent this statement from triggering when there are no values in `left_bounds` and `right_bounds`. This case occurs when \
-there are no obstacles in front at all. Thus, `self.angular_vel=0` is appropriate. 
+there are no obstacles in front of the Neato. In this case, `self.angular_vel=0` is appropriate. 
 
 So far, we have written the code to allow the Neato to move without hitting any obstacles. However, we have yet to include the notion \
 of a "preferred direction of motion." At first, we struggled with the definition of a "preferred direction of motion." Is it a single \
 point, as implied by the idea of potential fields? Or is it just a direction vector? We ultimately settled on the latter. 
 
-To achieve the preferred direction of motion, 
+To achieve the preferred direction of motion, we stored the changes in angular velocity and linear velocity in a list whenever the angular\
+velocity was not zero. When the Neato is travelling in a straight line, and it has completely passed the obstacle (determined by checking\
+if there are obstacles to either side of the Neato), it will "undo" the angular velocities stored in the history until the list becomes `0`. \
+
+
+<diagram>
+
+Like the `Wall follower`, we decided to add user input using similar controls. 
+
+- W: Forward (Obstacle Avoider ON)
+- A: Rotate Counterclockwise (Obstacle Avoider OFF)
+- S: Rotate clockwise (Obstacle Avoider OFF)
+- A: Backwards (Obstacle Avoider OFF)
+
+This allows the user to change the preferred direction of motion by resetting the angular and linear velocity lists. 
 
 Use encoder to store history
