@@ -57,7 +57,7 @@ In order to implement the drive square behavior, we used the time package, which
 
 ## Wall Follower
 
-[Wall Follower Demo Video]() 
+[Wall Follower Demo Video](https://youtube.com/shorts/JPt8uSnMzNA?feature=share) 
 [Wall Follower Visualization Video]()
 This module was our first exposure to utilizing the lidar sensor. This is one of the more powerful perception tools \
 available to the Neato. The Neato returns its Lidar content through the topic `/scan` in a `LaserScan` type message. \
@@ -98,7 +98,7 @@ multi-threading with the default Python `input()` to achieve a non-blocking vari
 For person following, the robot scans the area, and navigates towards the nearest object "person"
 
 [Person Follower Demo Video](https://youtube.com/shorts/jJg8_n1pfGM?feature=share)
-[Rviz2 Visualization Video]()
+[Rviz2 Visualization Video](https://youtu.be/syYlnzwFbQY)
 
 ### Methods
 To achieve person following behavior, we first had to make a few assumptions. Firstly, we assume the only thing in range of the robot is the person. So, any walls, or objects in the room are assumed to not be "in range" of the robot. We also assume that the "person" is actually one point around the center of the legs. 
@@ -114,8 +114,9 @@ The `person_follower.py` file contains a `PersonFollowerNode` which controls the
 
 ## Obstacle Avoidance
 
-[Obstacle Avoidance Demo Video]()
-[Obstacle Avoidance Visualization Video]()
+[Obstacle Avoidance Demo Video](https://youtube.com/shorts/1Yyr_hemj-g?feature=share)
+please note that the visualization in RViz for this behavior broke, and another visualization was unable to be obtained
+
 Obstacle avoider adapted our `Wall followe` algorithm to work with front facing walls. Similar to `Wall follower`, the \
 raw `LaserScan.ranges` data is stored into a `numpy.array` object called `distances`, with a parallel `numpy.array` called \
 `angles` created to store the corresponding angles. This time, we filter out any `distances` greater than `0.8`. Thus, the \
@@ -151,15 +152,22 @@ Use encoder to store history
 
 ## Finite State Controller
 
-[Finite State Controller Demo Video]()
+[Finite State Controller Demo Video](https://youtube.com/shorts/Fp6Xx75TFZ0?feature=share)
 
 ### Methods
 
+For the finite state controller, we decided to build a behavior based on the person following behavior already shown above. We build the node so that it exhibits person following behavior until the bump sensor is activated. Upon bumping, the robot switched to a mode which we call "dizzy". In dizzy mode, the robot spins in a circle quite fast. Upon bumping again, the mode switched back to person following. 
+
 ### Code Structure
+
+In order to exhibit person following and dizzy behaviors, we had to create a new attribute called `self.state`. On every bump event, we switch the state from spinning to following. While this node was implemented much more simply than others, it is built upon the person follower node.
 
 ## Conclusion
 
 ### Challenges
+Throughout the course of this project, there were many challenges we faced. One of the code-induced challenges were making the keyboard input work without stopping other events from being read. Another challenege was the conceptual mathmatical implementation of person tracking and wall tracking. Both of these challenges stumped us for some time, but through trial and error, we were able to create a program that we were both happy with. 
 ### Improvements
+Given more time, we would have implemented a few more things. For example, the finite state controller was initially planned on being a wall/person following combo. We wanted to use the lidar scans to differentiate walls and people. With this, we could have the robot follow walls until a person was seen, then follow the person. Due to time restraints, we had to scrap this idea. We also would have liked to create a more in depth documentation of our code, but time restricted us to only noting the key points. 
 ### Take-aways
+We believe that the biggest take away of this project is how powerful ROS is. Before this project, we had almost zero experience with ROS, but through the course of this project, we have been able to understand the problem solving capabilities of it, and how powerful the "publisher" and "subscriber" idea of robot control is. 
 
