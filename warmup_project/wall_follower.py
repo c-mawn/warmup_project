@@ -32,7 +32,8 @@ class WallFollowerNode(Node):
         initializes the class
         """
         super().__init__("WallFollowerNode")
-        self.wall_point = [0, 0]
+        self.left_wall_mean = 0
+        self.right_wall_mean = 0
         # creates the timer
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.run_loop)
@@ -69,6 +70,36 @@ class WallFollowerNode(Node):
             vel.linear.x = 0.0
             vel.angular.z = 0.0
 
+        marker = Marker()
+
+        marker.header.frame_id = "base_link"
+        marker.header.stamp = self.get_clock().now().to_msg()
+        marker.ns = "my_namespace"
+        marker.id = 0
+        marker.type = Marker.SPHERE
+        marker.action = Marker.ADD
+        marker.pose.position.z = 0.0
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 0.1
+        marker.scale.y = 0.1
+        marker.scale.z = 0.1
+        marker.color.a = 1.0
+        marker.color.r = 0.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
+
+        if self.right_wall_mean < self.left_wall_mean:
+            marker.pose.position.x = 0.0
+            marker.pose.position.y = -float(self.right_wall_mean)
+        else:
+            marker.pose.position.x = 0.0
+            marker.pose.position.y = float(self.left_wall_mean)
+
+        self.viz_pub.publish(marker)
+
         self.publisher.publish(vel)
 
     def keyboard_input(self, inp):
@@ -99,17 +130,17 @@ class WallFollowerNode(Node):
 
         # checks for NaN arrays
         if len(left_wall[0]) == 0:
-            left_wall_mean = 100
+            self.left_wall_mean = 100
         else:
-            left_wall_mean = np.mean(scans[left_wall])
+            self.left_wall_mean = np.mean(scans[left_wall])
 
         if len(right_wall[0]) == 0:
-            right_wall_mean = 100
+            self.right_wall_mean = 100
         else:
-            right_wall_mean = np.mean(scans[right_wall])
+            self.right_wall_mean = np.mean(scans[right_wall])
 
         # determine turn velocity
-        if left_wall_mean < right_wall_mean:
+        if self.left_wall_mean < self.right_wall_mean:
 
             # use left wall
             front = np.mean(scans[np.where((ranges > 60) & (ranges < 90))])
@@ -128,7 +159,7 @@ class WallFollowerNode(Node):
             else:
                 print("Do not turn")
                 self.angular_vel = 0.0
-        elif left_wall_mean > right_wall_mean:
+        elif self.left_wall_mean > self.right_wall_mean:
             # use right wall
             front = np.mean(scans[np.where((ranges > 240) & (ranges < 270))])
             back = np.mean(scans[np.where((ranges > 270) & (ranges < 300))])

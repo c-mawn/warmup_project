@@ -1,7 +1,3 @@
-import tty
-import select
-import sys
-import termios
 import rclpy
 import numpy as np
 from rclpy.node import Node
@@ -12,7 +8,7 @@ from neato2_interfaces.msg import Bump
 
 class FiniteStateControllerNode(Node):
     """
-    Class that combines the controls of teleop and person follower
+    Class that runs person follower, but if the neato is bumped, it will spin uncontrollably
     """
 
     def __init__(self):
@@ -27,7 +23,7 @@ class FiniteStateControllerNode(Node):
         self.avg_y = 0.0
         self.item_distance = 0.0
         self.bumped = False
-        self.state = "stop"
+        self.state = "follower"
 
         # creating the timer
         timer_period = 0.1
@@ -83,75 +79,37 @@ class FiniteStateControllerNode(Node):
         """
         handles the bump state of the neato
         """
+        # Checks to see if the bump state is true from the neato
         self.bumped = (
             msg.left_front or msg.right_front or msg.left_side or msg.right_side
         )
-
-    def get_key(self):
-        """
-        Gets and returns the current key input
-        """
-        tty.setraw(sys.stdin.fileno())
-        select.select([sys.stdin], [], [], 0)
-        key = sys.stdin.read(1)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
-        return key
-
-    settings = termios.tcgetattr(sys.stdin)
-    key = None
+        # if the bump is active, then flip the self.state from spin to follow or vice versa
+        if self.bumped:
+            if self.state == "follower":
+                self.state = "bumped"
+            else:
+                self.state = "follower"
 
     def run_loop(self):
         """
         loop that runs every timer incriment
         """
+        # initializing the vel
         vel = Twist()
-        if self.get_key() == "w":
-            self.state = "forward"
 
-        elif self.get_key() == "s":
-            self.state = "backward"
-
-        elif self.get_key() == "a":
-            self.state = "left"
-
-        elif self.get_key() == "d":
-            self.state = "right"
-
-        elif self.get_key() == "x":
-            self.state = "stop"
-
-        elif self.get_key() == "f":
-            self.state = "follower"
-
-        elif self.get_key() == "\x03":
+        # checks to see if neato has been bumped, if it has been, then make it spin very fast
+        if self.state == "bumped":
             vel.linear.x = 0.0
-            vel.angular.z = 0.0
-            self.vel_publisher.publish(vel)
-            rclpy.shutdown()
-
-        if self.state == "forward":
-            vel.angular.z = 0.0
-            vel.linear.x = 0.2
-        elif self.state == "backward":
-            vel.angular.z = 0.0
-            vel.linear.x = -0.2
-        elif self.state == "left":
-            vel.linear.x = 0.0
-            vel.angular.z = 0.2
-        elif self.state == "right":
-            vel.linear.x = 0.0
-            vel.angular.z = -0.2
-        elif self.state == "stop":
-            vel.linear.x = 0.0
-            vel.angular.z = 0.0
-        elif self.state == "follower":
+            vel.angular.z = 1.0
+        else:
+            # checks to see how much of a turn the person is from the neato
+            # if the turn is large enough, the linear movement stops, and it only turns
             if abs(self.item_error) > 0.5:
                 vel.linear.x = 0.0
             else:
                 vel.linear.x = 0.2
+            # sets the angular speed to be proportional to the distance it needs to move
             vel.angular.z = 0.75 * self.item_error
-            print(self.item_error)
-
         self.vel_publisher.publish(vel)
 
 
