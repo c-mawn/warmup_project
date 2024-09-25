@@ -113,38 +113,38 @@ class WallFollowerNode(Node):
         Callback for LaserScan
         Changes the value of self.angular_vel according to the detected wall
         """
-        scans = np.array(msg.ranges)
-        ranges = np.array(range(361))
+        distances = np.array(msg.ranges)
+        angles = np.array(range(361))
 
         # removes scans that are too far away or returned a 0
-        outside_bounds = np.where((scans > 0) & (scans < 1.7))
-        scans = scans[outside_bounds]
-        ranges = ranges[outside_bounds]
+        outside_bounds = np.where((distances > 0) & (distances < 1.7))
+        distances = distances[outside_bounds]
+        angles = angles[outside_bounds]
         # find the value of walls
         left_wall = np.where(
-            (ranges > 80) & (ranges < 100)
+            (angles > 80) & (angles < 100)
         )  # array that show left side
         right_wall = np.where(
-            (ranges > 260) & (ranges < 280)
+            (angles > 260) & (angles < 280)
         )  # array that show right side
 
         # checks for NaN arrays
         if len(left_wall[0]) == 0:
             self.left_wall_mean = 100
         else:
-            self.left_wall_mean = np.mean(scans[left_wall])
+            self.left_wall_mean = np.mean(distances[left_wall])
 
         if len(right_wall[0]) == 0:
             self.right_wall_mean = 100
         else:
-            self.right_wall_mean = np.mean(scans[right_wall])
+            self.right_wall_mean = np.mean(distances[right_wall])
 
         # determine turn velocity
         if self.left_wall_mean < self.right_wall_mean:
 
             # use left wall
-            front = np.mean(scans[np.where((ranges > 60) & (ranges < 90))])
-            back = np.mean(scans[np.where((ranges > 90) & (ranges < 120))])
+            front = np.mean(distances[np.where((angles > 60) & (angles < 90))])
+            back = np.mean(distances[np.where((angles > 90) & (angles < 120))])
 
             if math.isnan(front):
                 front = 100
@@ -161,8 +161,8 @@ class WallFollowerNode(Node):
                 self.angular_vel = 0.0
         elif self.left_wall_mean > self.right_wall_mean:
             # use right wall
-            front = np.mean(scans[np.where((ranges > 240) & (ranges < 270))])
-            back = np.mean(scans[np.where((ranges > 270) & (ranges < 300))])
+            front = np.mean(distances[np.where((angles > 240) & (angles < 270))])
+            back = np.mean(distances[np.where((angles > 270) & (angles < 300))])
 
             if math.isnan(front):
                 front = 100
