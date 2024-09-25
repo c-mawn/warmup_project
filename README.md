@@ -21,7 +21,7 @@ our Neato.
 - [Obstacle Avoider](#obstacle-avoider)
 - [Finite-State Controller](#finite-state-controller)
 
-## Teleoperation  <a name="teleop"></a>
+## Teleoperation  <a name="teleoperation"></a>
 
 ### Methods
 This module allows a person to manually remote control a robot through a wireless connection. Our teleoperation
@@ -39,7 +39,7 @@ In order to implement this behavior, we used a package that tells python what ke
 
 
 
-## Driving a Square <a name="square"></a>
+## Driving a Square <a name="driving-a-square"></a>
 
 ### Methods
 
@@ -55,7 +55,7 @@ the Neato would draw.
 ### Code Structure
 In order to implement the drive square behavior, we used the time package, which tells us the current time as well as the time since we started the program. This means that we are able to tell the robot (via the `cmd_vel` topic) the amount of time to move for. We set the wheels to move forward for a set amount of time, then turn for the set amount of time repeatedly. 
 
-## Wall Follower  <a name="wall-follow"></a>
+## Wall Follower  <a name="wall-follower"></a>
 ### Description
 Looks for the nearest wall and drives parallel to it. \
 [Wall Follower Demo Video](https://youtube.com/shorts/JPt8uSnMzNA?feature=share) \
@@ -96,7 +96,7 @@ However, the user needs to confirm the input with an `enter`. The algorithm that
 non-blocking user input. Unfortunately, we were unable to provide that with our intial `teleop` module. Thus, we used 
 multi-threading with the default Python `input()` to achieve a non-blocking variation of `teleop`. 
 
-## Person Follower  <a name="person-follow"></a>
+## Person Follower  <a name="person-follower"></a>
 ### Description
 For person following, the robot scans the area, and navigates towards the nearest object "person"
 
