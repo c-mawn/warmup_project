@@ -59,7 +59,7 @@ In order to implement the drive square behavior, we used the time package, which
 ### Description
 Looks for the nearest wall and drives parallel to it. \
 [Wall Follower Demo Video](https://youtube.com/shorts/JPt8uSnMzNA?feature=share) \
-[Wall Follower Visualization Video]()
+[Wall Follower Visualization Video](https://youtu.be/67B3-qCJXy4)
 
 ### Methods
 This module was our first exposure to utilizing the lidar sensor. This is one of the more powerful perception tools \
