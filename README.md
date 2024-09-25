@@ -12,7 +12,7 @@ The goal of this project is to familiarize ourselves with Ros2, the interface be
 that we will be using throughout this course. This project first started with simple drive commands using \
 the publisher `cmd_vel`, and eventually introduced perception and proportional control. The primary sensors\
 used in this project are the built-in lidar and bump sensor. These are the final behaviors programmed into\
-our Neato. \
+our Neato. 
 
 - Teleoperation
 - Driving a Square
@@ -26,7 +26,7 @@ our Neato. \
 ### Methods
 This module allows a person to manually remote control a robot through a wireless connection. Our teleoperation\
 catches user input as long as the user is in the terminal that is running the ros2 file. The Neato accepts the\
-following input: \
+following input: 
 
 - W: Forward
 - A: Rotate Counterclockwise 
@@ -56,9 +56,12 @@ the Neato would draw.
 In order to implement the drive square behavior, we used the time package, which tells us the current time as well as the time since we started the program. This means that we are able to tell the robot (via the `cmd_vel` topic) the amount of time to move for. We set the wheels to move forward for a set amount of time, then turn for the set amount of time repeatedly. 
 
 ## Wall Follower
-
-[Wall Follower Demo Video]() 
+### Description
+Looks for the nearest wall and drives parallel to it. \
+[Wall Follower Demo Video](https://youtube.com/shorts/JPt8uSnMzNA?feature=share) \
 [Wall Follower Visualization Video]()
+
+### Methods
 This module was our first exposure to utilizing the lidar sensor. This is one of the more powerful perception tools \
 available to the Neato. The Neato returns its Lidar content through the topic `/scan` in a `LaserScan` type message. \
 `LaserScan.ranges` returns the distances of each degree in an array with length `361`. We store this in a `numpy.array` \
@@ -97,8 +100,8 @@ multi-threading with the default Python `input()` to achieve a non-blocking vari
 ### Description
 For person following, the robot scans the area, and navigates towards the nearest object "person"
 
-[Person Follower Demo Video](https://youtube.com/shorts/jJg8_n1pfGM?feature=share)
-[Rviz2 Visualization Video]()
+[Person Follower Demo Video](https://youtube.com/shorts/jJg8_n1pfGM?feature=share)\
+[Rviz2 Visualization Video](https://youtu.be/syYlnzwFbQY)
 
 ### Methods
 To achieve person following behavior, we first had to make a few assumptions. Firstly, we assume the only thing in range of the robot is the person. So, any walls, or objects in the room are assumed to not be "in range" of the robot. We also assume that the "person" is actually one point around the center of the legs. 
@@ -112,11 +115,15 @@ We then use this 'item error' to proportionally control the robot's speed when f
 ### Code Structure
 The `person_follower.py` file contains a `PersonFollowerNode` which controls the person following behavior of this robot. Within the `PersonFollowerNode` there is a publisher, sending messages on the `cmd_vel` topic to the robot, telling it what velocities to set the wheels at. This class also contains a subscriber, listing to the `scan` topic, and recieving LIDAR scan information from the robot. There is also a publisher used in publishing to the `marker` topic, which was useful in visualizing and debugging the node. 
 
-## Obstacle Avoidance
+## Obstacle Avoider
+### Description
+Move in a preferred direction of motion, while avoiding obstacles using the lidar scanner. 
 
-[Obstacle Avoidance Demo Video]()
-[Obstacle Avoidance Visualization Video]()
-Obstacle avoider adapted our `Wall followe` algorithm to work with front facing walls. Similar to `Wall follower`, the \
+[Obstacle Avoidance Demo Video](https://youtube.com/shorts/1Yyr_hemj-g?feature=share)
+> Please note that the visualization in RViz for this behavior broke, and another visualization was unable to be obtained
+
+### Methods
+Obstacle avoider adapted our `Wall follower` algorithm to work with front facing walls. Similar to `Wall follower`, the \
 raw `LaserScan.ranges` data is stored into a `numpy.array` object called `distances`, with a parallel `numpy.array` called \
 `angles` created to store the corresponding angles. This time, we filter out any `distances` greater than `0.8`. Thus, the \
 Neato can only "see" objects within a 0.8 meter radius circle. The remaining `distances` and `angles` are sorted into the \
@@ -137,29 +144,51 @@ if mean(left_bounds) - mean(right_bounds) < 0.1:
     self.angular_velocity = 2.0
     self.linear_velocity_scale = 0.4
 ```
-This statement changes the angle such that we can continue to use the first statement. We use `foo2 - foo1 < 0.1` instead of `==` \
+This statement changes the angle such that we can continue to use the first statement. Additionally, we decided to slow down\
+the linear velocity when the Neato is in such a position. For the conditional itself, we use `foo2 - foo1 < 0.1` instead of `==` \
 to prevent this statement from triggering when there are no values in `left_bounds` and `right_bounds`. This case occurs when \
-there are no obstacles in front at all. Thus, `self.angular_vel=0` is appropriate. 
+there are no obstacles in front of the Neato. In this case, `self.angular_vel=0` is appropriate. 
 
 So far, we have written the code to allow the Neato to move without hitting any obstacles. However, we have yet to include the notion \
 of a "preferred direction of motion." At first, we struggled with the definition of a "preferred direction of motion." Is it a single \
 point, as implied by the idea of potential fields? Or is it just a direction vector? We ultimately settled on the latter. 
 
-To achieve the preferred direction of motion, 
+To achieve the preferred direction of motion, we stored the changes in angular velocity and linear velocity in a list whenever the angular\
+velocity was not zero. When the Neato is travelling in a straight line, and it has completely passed the obstacle (determined by checking\
+if there are obstacles to either side of the Neato), it will "undo" the angular velocities stored in the history until the list becomes `0`. 
 
-Use encoder to store history
+
+<img src="Images/obstacle_avoider.png" alt="Obstacle Avoider Diagram" width="800"/>
+
+Like the `Wall follower`, we decided to add user input using similar controls. 
+
+- W: Forward (Obstacle Avoider ON)
+- A: Rotate Counterclockwise (Obstacle Avoider OFF)
+- S: Rotate clockwise (Obstacle Avoider OFF)
+- A: Backwards (Obstacle Avoider OFF)
+
+This allows the user to change the preferred direction of motion by resetting the angular and linear velocity lists. One way we would improve\
+the obstacle avoider is by including the encoder to help store history. This increase both accuracy and robustness of the algorithm's ability\
+to return back to a preferred direction of motion. 
 
 ## Finite State Controller
 
-[Finite State Controller Demo Video]()
+[Finite State Controller Demo Video](https://youtube.com/shorts/Fp6Xx75TFZ0?feature=share)
 
 ### Methods
 
+For the finite state controller, we decided to build a behavior based on the person following behavior already shown above. We build the node so that it exhibits person following behavior until the bump sensor is activated. Upon bumping, the robot switched to a mode which we call "dizzy". In dizzy mode, the robot spins in a circle quite fast. Upon bumping again, the mode switched back to person following. 
+
 ### Code Structure
+
+In order to exhibit person following and dizzy behaviors, we had to create a new attribute called `self.state`. On every bump event, we switch the state from spinning to following. While this node was implemented much more simply than others, it is built upon the person follower node.
 
 ## Conclusion
 
 ### Challenges
+Throughout the course of this project, there were many challenges we faced. One of the code-induced challenges were making the keyboard input work without stopping other events from being read. Another challenege was the conceptual mathmatical implementation of person tracking and wall tracking. Both of these challenges stumped us for some time, but through trial and error, we were able to create a program that we were both happy with. 
 ### Improvements
+Given more time, we would have implemented a few more things. For example, the finite state controller was initially planned on being a wall/person following combo. We wanted to use the lidar scans to differentiate walls and people. With this, we could have the robot follow walls until a person was seen, then follow the person. Due to time restraints, we had to scrap this idea. We also would have liked to create a more in depth documentation of our code, but time restricted us to only noting the key points. 
 ### Take-aways
+We believe that the biggest take away of this project is how powerful ROS is. Before this project, we had almost zero experience with ROS, but through the course of this project, we have been able to understand the problem solving capabilities of it, and how powerful the "publisher" and "subscriber" idea of robot control is. 
 

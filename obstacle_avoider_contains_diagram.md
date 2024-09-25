@@ -69,10 +69,10 @@ point, as implied by the idea of potential fields? Or is it just a direction vec
 
 To achieve the preferred direction of motion, we stored the changes in angular velocity and linear velocity in a list whenever the angular\
 velocity was not zero. When the Neato is travelling in a straight line, and it has completely passed the obstacle (determined by checking\
-if there are obstacles to either side of the Neato), it will "undo" the angular velocities stored in the history until the list becomes `0`. \
+if there are obstacles to either side of the Neato), it will "undo" the angular velocities stored in the history until the list becomes `0`. 
 
 
-<diagram>
+<img src="Images/obstacle_avoider.png" alt="Obstacle Avoider Diagram" width="800"/>
 
 Like the `Wall follower`, we decided to add user input using similar controls. 
 
@@ -81,6 +81,6 @@ Like the `Wall follower`, we decided to add user input using similar controls.
 - S: Rotate clockwise (Obstacle Avoider OFF)
 - A: Backwards (Obstacle Avoider OFF)
 
-This allows the user to change the preferred direction of motion by resetting the angular and linear velocity lists. 
-
-Use encoder to store history
+This allows the user to change the preferred direction of motion by resetting the angular and linear velocity lists. One way we would improve\
+the obstacle avoider is by including the encoder to help store history. This increase both accuracy and robustness of the algorithm's ability\
+to return back to a preferred direction of motion. 
