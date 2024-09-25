@@ -1,5 +1,5 @@
 """
-Wall follower module. 
+obstacle_avoider
 
 Uses keyboard input (must press enter)
 

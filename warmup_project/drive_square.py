@@ -1,8 +1,8 @@
+from time import time
+from math import pi
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from time import time
-from math import pi
 
 
 class DriveSquareNode(Node):
@@ -16,6 +16,7 @@ class DriveSquareNode(Node):
         """
         super().__init__("DriveSquareNode")
 
+        # creating the timer
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.run_loop)
         # creates a publisher that tells the neato its wheel velocities
